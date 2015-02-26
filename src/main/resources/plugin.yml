@@ -1,0 +1,22 @@
+name: ${project.name}
+version: ${project.version}
+description: ${project.description}
+main: nl.dykam.dev.autoregen.AutoRegenPlugin
+depend: [WGCustomFlags, WorldGuard]
+commands:
+  autoregenbypass:
+    description: Toggles bypassing autoregen
+    permission: autoregen.bypass.toggle
+  autoregenreload:
+    description: Reloads the config
+    permission: autoregen.reload
+permissions:
+  autoregen.bypass:
+    description: Bypass autoregen
+    default: false
+  autoregen.bypass.toggle:
+    description: Allow toggling bypassing autoregen
+    default: op
+  autoregen.reload:
+    description: Allows reloading the config
+    default: op
