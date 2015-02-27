@@ -1,23 +1,24 @@
 package nl.dykam.dev.autoregen;
 
 public class TimeRules {
-    private Threshold threshold;
+    public static final TimeRules INSTANT = new TimeRules(0, TimeRuleType.DELAY);
+    //    private Threshold threshold;
     private long time;
     private TimeRuleType type;
 
-    public TimeRules(Threshold threshold, long time, TimeRuleType type) {
-        this.threshold = threshold;
+    public TimeRules(/*Threshold threshold, */long time, TimeRuleType type) {
+//        this.threshold = threshold;
         this.time = time;
         this.type = type;
     }
 
-    public Threshold getThreshold() {
-        return threshold;
-    }
-
-    public void setThreshold(Threshold thresHold) {
-        this.threshold = thresHold;
-    }
+//    public Threshold getThreshold() {
+//        return threshold;
+//    }
+//
+//    public void setThreshold(Threshold thresHold) {
+//        this.threshold = thresHold;
+//    }
 
     public long getTime() {
         return time;
