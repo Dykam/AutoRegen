@@ -39,7 +39,10 @@ public class TallCropGenerator implements Regenerator<BlockState> {
 
     @Override
     public boolean validate(RegenContext context) {
-        return true;
+        Block block = context.getBlock().getBlock();
+        Block below = block.getRelative(BlockFace.DOWN);
+        Block above = block.getRelative(BlockFace.UP);
+        return (below != null && below.getType() == block.getType()) || (above != null && above.getType() == block.getType()) ||  block.getData() == 15;
     }
 
     @Override

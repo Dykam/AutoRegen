@@ -30,7 +30,7 @@ public class CropRegenerator implements Regenerator<Material> {
 
     @Override
     public boolean validate(RegenContext context) {
-        return true;
+        return context.getBlock().getRawData() == 7;
     }
 
     @Override
