@@ -6,7 +6,7 @@
 
     <groupId>nl.dykam.dev</groupId>
     <artifactId>autoregen</artifactId>
-    <version>2.0-SNAPSHOT</version>
+    <version>2.1-SNAPSHOT</version>
     <description>Auto Regeneration of Farms etc. for Bukkit</description>
 
     <dependencies>
@@ -50,6 +50,7 @@
         <url>https://github.com/Dykam/AutoRegen</url>
         <connection>scm:git:git://github.com/Dykam/AutoRegen.git</connection>
         <developerConnection>scm:git:git@github.com:Dykam/AutoRegen.git</developerConnection>
+        <tag>HEAD</tag>
     </scm>
 
     <repositories>
@@ -69,13 +70,6 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
-                <configuration>
                     <compilerId>javac-with-errorprone</compilerId>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
                 </configuration>
