@@ -1,0 +1,19 @@
+groups:
+  default:
+    # Sets of regeneration settings
+    # Each set starts with a -, and contains one or more regeneration groups with settings, and optionally a timings block
+    sets:
+      - crops: true
+        tallcrops:
+          break-fully: false
+          regen-fully: false
+        timing:
+            type: delay # interval|delay|instant
+            time: 5s
+    settings:
+      # Prevent any other block than autoregenerated blocks from being mined.
+      # If set to false, use something like allow-blocks to make sure only regenables can be broken
+      protect: true
+      timing: # default timing if omitted in the sets
+          type: delay # interval|delay|instant
+          time: 5s
