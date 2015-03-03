@@ -197,15 +197,18 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             case "autoregenreload":
                 reloadConfig();
                 parseConfig();
+                sender.sendMessage(ChatColor.DARK_GREEN + "Reloaded Config");
                 break;
             case "autoregenbypass":
-                if(!(sender instanceof Player)) {
-                    sender.sendMessage("Can only be executed by a player");
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(ChatColor.RED + "Can only be executed by a player");
                     return true;
                 }
                 Player player = (Player) sender;
                 testBypass(player);
-                bypasses.put(player.getUniqueId(), !bypasses.get(player.getUniqueId()));
+                boolean bypassEnabled = !bypasses.get(player.getUniqueId());
+                bypasses.put(player.getUniqueId(), bypassEnabled);
+                sender.sendMessage(ChatColor.DARK_GREEN + "Toggled bypass " + (bypassEnabled ? "on" : "off"));
                 break;
         }
         return true;
