@@ -9,6 +9,7 @@ import com.sk89q.worldguard.protection.flags.StringFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
+import nl.dykam.dev.autoregen.regenerators.defaults.CocoaRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.CropRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.TallCropGenerator;
 import nl.dykam.dev.autoregen.util.ConfigExtra;
@@ -79,6 +80,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
 
         Bukkit.getServicesManager().register(RegeneratorCreator.class, new CropRegenerator.Creator(this), this, ServicePriority.Normal);
         Bukkit.getServicesManager().register(RegeneratorCreator.class, new TallCropGenerator.Creator(this), this, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(RegeneratorCreator.class, new CocoaRegenerator.Creator(this), this, ServicePriority.Normal);
 
         for (RegisteredServiceProvider<RegeneratorCreator> provider : Bukkit.getServicesManager().getRegistrations(RegeneratorCreator.class)) {
             RegeneratorCreator creator = provider.getProvider();

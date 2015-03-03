@@ -4,6 +4,7 @@ groups:
     # Each set starts with a -, and contains one or more regeneration groups with settings, and optionally a timings block
     sets:
       - crops: true
+        cocoa: true
         tallcrops:
           break-fully: false
           regen-fully: false
