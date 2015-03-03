@@ -213,7 +213,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
         PlayerInventory inventory = event.getPlayer().getInventory();
         ItemStack tool = inventory.getItemInHand();
         Collection<ItemStack> drops = block.getDrops(tool);
-        final RegenContext context = new RegenContext(block.getState(), tool, inventory, drops);
+        final RegenContext context = new RegenContext(event.getPlayer(), block.getState(), tool, inventory, drops);
 
         final RegeneratorSet regeneratorSet = regenGroup.getRegenerator(context);
         if(regeneratorSet == null) {
