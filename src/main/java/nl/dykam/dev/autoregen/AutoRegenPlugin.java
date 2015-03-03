@@ -125,13 +125,16 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
                 for (String regeneratorName : regeneratorsSection.getKeys(false)) {
                     if(regeneratorName.equals("timing")) continue;
 
+                    ConfigurationSection regeneratorConfig = regeneratorsSection.getConfigurationSection(regeneratorName);
+                    if (regeneratorConfig == null && !regeneratorsSection.getBoolean(regeneratorName, false))
+                        continue;
+
                     RegeneratorCreator regeneratorCreator = creators.get(regeneratorName);
                     if(regeneratorCreator == null) {
                         getLogger().warning("Unknown regenerator: " + regeneratorName);
                         continue;
                     }
 
-                    ConfigurationSection regeneratorConfig = regeneratorsSection.getConfigurationSection(regeneratorName);
                     Regenerator regenerator = regeneratorCreator.generate(regeneratorConfig);
                     regeneratorSets.add(new RegeneratorSet(timeRules, regenerator));
                 }
