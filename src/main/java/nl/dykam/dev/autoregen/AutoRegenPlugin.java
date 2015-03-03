@@ -12,6 +12,7 @@ import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.defaults.CropRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.TallCropGenerator;
 import nl.dykam.dev.autoregen.util.ConfigExtra;
+import nl.dykam.dev.autoregen.util.TitleSettings;
 import org.apache.commons.collections.ComparatorUtils;
 import org.apache.commons.collections.ListUtils;
 import org.bukkit.Bukkit;
@@ -39,6 +40,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AutoRegenPlugin extends JavaPlugin implements Listener {
+    public static final TitleSettings TITLE_SETTINGS = new TitleSettings(20, 5);
+    private static AutoRegenPlugin instance;
+    private Toaster toaster;
     private WorldGuardPlugin worldGuard;
     private HashMap<UUID, Boolean> bypasses;
     private Map<String, RegenGroup> regenGroups;
@@ -52,11 +56,18 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     @Override @SuppressWarnings("unchecked")
     public void onEnable() {
         super.onEnable();
+        instance = this;
         regenGroups = new HashMap<>();
         bypasses = new HashMap<>();
         creators = new HashMap<>();
         random = new Random();
         regenTasks = new HashMap<>();
+
+        if (Bukkit.getPluginManager().getPlugin("ProtocolLib") == null) {
+            toaster = new ChatToaster();
+        } else {
+            toaster = new ProtocolLibTitleToaster();
+        }
 
         WGCustomFlagsPlugin customFlagsPlugin = setupCustomFlags();
         customFlagsPlugin.addCustomFlag(AUTOREGEN);
@@ -285,5 +296,13 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             getLogger().severe(String.format("One of the regions \"%s\" contains unknown value \"%s\" for flag \"%s\"", sb, flag, AUTOREGEN.getName()));
         }
         return regenGroup;
+    }
+
+    public static AutoRegenPlugin instance() {
+        return instance;
+    }
+
+    public Toaster getToaster() {
+        return toaster;
     }
 }

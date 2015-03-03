@@ -44,6 +44,11 @@
             <artifactId>commons-collections</artifactId>
             <version>3.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>3.6.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <scm>
@@ -58,6 +63,11 @@
             <id>bukkit-repo</id>
             <name>Bukkit repo</name>
             <url>http://repo.bukkit.org/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>shadowvolt-repo</id>
+            <!-- ProtocolLib -->
+            <url>http://ci.shadowvolt.com/plugin/repository/everything/</url>
         </repository>
     </repositories>
 

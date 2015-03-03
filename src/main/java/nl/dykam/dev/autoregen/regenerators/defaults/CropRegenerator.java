@@ -1,14 +1,19 @@
 package nl.dykam.dev.autoregen.regenerators.defaults;
 
 import com.google.common.collect.ImmutableSet;
+import nl.dykam.dev.autoregen.AutoRegenPlugin;
 import nl.dykam.dev.autoregen.RegenContext;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
+import org.bukkit.ChatColor;
+import org.bukkit.CropState;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
@@ -30,11 +35,19 @@ public class CropRegenerator implements Regenerator<Material> {
 
     @Override
     public boolean validate(RegenContext context) {
-        return context.getBlock().getRawData() == 7;
+        return true;
     }
 
     @Override
     public Material breakdown(RegenContext context) {
+        MaterialData crops = context.getBlock().getData();
+        if (crops.getData() != CropState.RIPE.getData()) {
+            Player player = context.getPlayer();
+            String message = ChatColor.GOLD + "This isn't fully grown";
+            AutoRegenPlugin.instance().getToaster().sendMessage(player, message);
+            context.getDrops().clear();
+            return null;
+        }
         for (Iterator<ItemStack> iterator = context.getDrops().iterator(); iterator.hasNext(); ) {
             ItemStack itemStack = iterator.next();
             if (itemStack.getType() == Material.SEEDS)
