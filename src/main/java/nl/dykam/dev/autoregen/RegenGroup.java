@@ -1,6 +1,9 @@
 package nl.dykam.dev.autoregen;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
 import org.bukkit.Material;
@@ -52,7 +55,7 @@ public class RegenGroup {
         MaterialData data = context.getBlock().getData();
         Iterable<TriggerRegeneratorPair> candidateRegenerators = Iterables.concat(regeneratorsByIdAndData.get(data), regeneratorsById.get(type));
         for (TriggerRegeneratorPair entry : candidateRegenerators) {
-            if(entry.trigger.test(context) && entry.regeneratorSet.getRegenerator().validate(context))
+            if (entry.trigger.test(context) && entry.regeneratorSet.getRegenerator().validate(context))
                 return entry.regeneratorSet;
         }
         return null;

@@ -1,7 +1,5 @@
 package nl.dykam.dev.autoregen.util;
 
-import org.bukkit.material.MaterialData;
-
 import java.util.*;
 
 public class ChanceList<T> {
@@ -10,6 +8,7 @@ public class ChanceList<T> {
     public ChanceList() {
         entries = new ArrayList<>();
     }
+
     public ChanceList(Map<T, Float> entries) {
         this.entries = new ArrayList<>();
         addAll(entries);
@@ -22,7 +21,7 @@ public class ChanceList<T> {
 
     public void remove(T value) {
         int index = entries.indexOf(value);
-        if(index == -1)
+        if (index == -1)
             return;
         entries.remove(index);
         recalculateWeightFrom(index);
@@ -31,7 +30,7 @@ public class ChanceList<T> {
     public T pick(Random random) {
         float value = random.nextFloat() * sumOfWeights();
         int index = Collections.binarySearch(entries, value);
-        if(index == -1)
+        if (index == -1)
             index = entries.size() - 1;
         return entries.get(index).value;
     }
@@ -42,9 +41,9 @@ public class ChanceList<T> {
 
     private void recalculateWeightFrom(int i) {
         float sum = 0;
-        if(i > 0)
+        if (i > 0)
             sum = entries.get(i - 1).cumulativeWeight + entries.get(i - 1).weight;
-        for(; i < entries.size(); i++) {
+        for (; i < entries.size(); i++) {
             Entry entry = entries.get(i);
             entry.cumulativeWeight = sum;
             sum += entry.weight;
@@ -77,9 +76,9 @@ public class ChanceList<T> {
 
         @Override
         public int compareTo(Float value) {
-            if(cumulativeWeight > value)
+            if (cumulativeWeight > value)
                 return 1;
-            if(cumulativeWeight + weight < value)
+            if (cumulativeWeight + weight < value)
                 return -1;
             return 0;
         }

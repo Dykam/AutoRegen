@@ -9,8 +9,7 @@ import java.util.Map;
 
 public class ConfigExtra {
     @SuppressWarnings("unchecked")
-    public static List<ConfigurationSection> getConfigList(ConfigurationSection config, String path)
-    {
+    public static List<ConfigurationSection> getConfigList(ConfigurationSection config, String path) {
         if (!config.isList(path)) return null;
 
         List<ConfigurationSection> list = new LinkedList<>();
@@ -18,8 +17,8 @@ public class ConfigExtra {
         for (Object object : config.getList(path)) {
             if (object instanceof Map) {
                 MemoryConfiguration mc = new MemoryConfiguration();
-                for (Map.Entry<String, ?> entry : ((Map<String,?>) object).entrySet()) {
-                    if(entry.getValue() instanceof Map) {
+                for (Map.Entry<String, ?> entry : ((Map<String, ?>) object).entrySet()) {
+                    if (entry.getValue() instanceof Map) {
                         mc.createSection(entry.getKey(), (Map<?, ?>) entry.getValue());
                     } else {
                         mc.set(entry.getKey(), entry.getValue());

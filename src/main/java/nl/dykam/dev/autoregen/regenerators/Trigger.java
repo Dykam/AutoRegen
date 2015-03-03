@@ -42,14 +42,14 @@ public class Trigger {
     }
 
     public boolean test(RegenContext context) {
-        if(!tools.isEmpty() && !tools.contains(context.getTool()))
+        if (!tools.isEmpty() && !tools.contains(context.getTool()))
             return false;
-        if(!materials.isEmpty() && !materials.contains(context.getBlock().getType()))
+        if (!materials.isEmpty() && !materials.contains(context.getBlock().getType()))
             return false;
-        if(!exactMaterials.isEmpty() && !exactMaterials.contains(context.getBlock().getData()))
+        if (!exactMaterials.isEmpty() && !exactMaterials.contains(context.getBlock().getData()))
             return false;
         for (ItemStack inventoryRequirement : inventoryRequirements) {
-            if(!context.getInventory().contains(inventoryRequirement))
+            if (!context.getInventory().contains(inventoryRequirement))
                 return false;
         }
 

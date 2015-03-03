@@ -5,7 +5,10 @@ import org.bukkit.plugin.Plugin;
 
 public interface RegeneratorCreator {
     String getName();
+
     Plugin getPlugin();
+
     ConfigurationSection getDefaultConfiguration();
+
     Regenerator generate(ConfigurationSection config);
 }

@@ -1,7 +1,5 @@
 package nl.dykam.dev.autoregen;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
 import com.mewin.WGCustomFlags.WGCustomFlagsPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
@@ -14,9 +12,8 @@ import nl.dykam.dev.autoregen.regenerators.defaults.CropRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.TallCropGenerator;
 import nl.dykam.dev.autoregen.util.ConfigExtra;
 import nl.dykam.dev.autoregen.util.TitleSettings;
-import org.apache.commons.collections.ComparatorUtils;
-import org.apache.commons.collections.ListUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
@@ -54,7 +51,8 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     public static final StringFlag AUTOREGEN = new StringFlag("autoregen");
     public static final Pattern TIME_PATTERN = Pattern.compile("(\\d+)(s(?:ec(?:ond)?)?|m(:?in(?:ute)?)?|h(?:our)?|d(?:ay)?)?", Pattern.CASE_INSENSITIVE);
 
-    @Override @SuppressWarnings("unchecked")
+    @Override
+    @SuppressWarnings("unchecked")
     public void onEnable() {
         super.onEnable();
         instance = this;
@@ -87,11 +85,11 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             String creatorName = creator.getName().toLowerCase();
             String name = creator.getPlugin().getName().toLowerCase() + ":" + creatorName;
             creators.put(name, creator);
-            if(!creators.containsKey(creatorName))
+            if (!creators.containsKey(creatorName))
                 creators.put(creatorName, creator);
 
             ConfigurationSection defaultConfiguration = creator.getDefaultConfiguration();
-            if(defaultConfiguration != null)
+            if (defaultConfiguration != null)
                 getConfig().addDefault("example-creators." + name, defaultConfiguration);
             else
                 getConfig().addDefault("example-creators." + name, true);
@@ -125,18 +123,17 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             for (ConfigurationSection regeneratorsSection : ConfigExtra.getConfigList(groupSection, "sets")) {
                 TimeRules timeRules = parseTimeRules(regeneratorsSection.getConfigurationSection("timing"), defaultTimeRules);
                 for (String regeneratorName : regeneratorsSection.getKeys(false)) {
-                    if(regeneratorName.equals("timing")) continue;
+                    if (regeneratorName.equals("timing")) continue;
 
                     ConfigurationSection regeneratorConfig = regeneratorsSection.getConfigurationSection(regeneratorName);
                     if (regeneratorConfig == null && !regeneratorsSection.getBoolean(regeneratorName, false))
                         continue;
 
                     RegeneratorCreator regeneratorCreator = creators.get(regeneratorName);
-                    if(regeneratorCreator == null) {
+                    if (regeneratorCreator == null) {
                         getLogger().warning("Unknown regenerator: " + regeneratorName);
                         continue;
                     }
-
                     Regenerator regenerator = regeneratorCreator.generate(regeneratorConfig);
                     regeneratorSets.add(new RegeneratorSet(timeRules, regenerator));
                 }
@@ -148,13 +145,14 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     }
 
     private TimeRules parseTimeRules(ConfigurationSection regen) {
-        if(regen == null)
+        if (regen == null)
             return null;
         String string = regen.getString("type", "INSTANT");
         TimeRuleType type = TimeRuleType.DELAY;
         try {
             type = TimeRuleType.valueOf(string);
-        } catch (IllegalArgumentException ignored) {}
+        } catch (IllegalArgumentException ignored) {
+        }
         long time = string.equalsIgnoreCase("INSTANT") ? 0 : parseTime(regen.getString("time", "0"));
         return new TimeRules(/*parseThreshold(regen.getString("threshold", "0")), */time, type);
     }
@@ -165,7 +163,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     }
 
     private Threshold parseThreshold(String threshold) {
-        if(threshold.endsWith("%"))
+        if (threshold.endsWith("%"))
             return new Threshold(Float.parseFloat(threshold.substring(0, threshold.length() - 1)), Threshold.Type.PERCENTAGE);
         else
             return new Threshold(Integer.parseInt(threshold), Threshold.Type.ABSOLUTE);
@@ -179,16 +177,22 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             String unit = matcher.group(2) == null ? "s" : matcher.group(2);
             Integer amount = Integer.parseInt(matcher.group(1));
             switch (unit.toLowerCase()) {
-                case "s":case "sec":case "second":
+                case "s":
+                case "sec":
+                case "second":
                     calendar.add(Calendar.SECOND, amount);
                     break;
-                case "m":case "min":case "minute":
+                case "m":
+                case "min":
+                case "minute":
                     calendar.add(Calendar.MINUTE, amount);
                     break;
-                case "h":case "hour":
+                case "h":
+                case "hour":
                     calendar.add(Calendar.HOUR, amount);
                     break;
-                case "d": case "day":
+                case "d":
+                case "day":
                     calendar.add(Calendar.MONTH, amount);
                     break;
             }
@@ -221,11 +225,11 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     private void onBlockBreak(final BlockBreakEvent event) {
-        if(testBypass(event.getPlayer()))
+        if (testBypass(event.getPlayer()))
             return;
 
         RegenGroup regenGroup = getRegenGroup(event.getBlock().getLocation());
-        if(regenGroup == null)
+        if (regenGroup == null)
             return;
 
         Block block = event.getBlock();
@@ -235,8 +239,8 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
         final RegenContext context = new RegenContext(event.getPlayer(), block.getState(), tool, inventory, drops);
 
         final RegeneratorSet regeneratorSet = regenGroup.getRegenerator(context);
-        if(regeneratorSet == null) {
-            if(regenGroup.isProtected())
+        if (regeneratorSet == null) {
+            if (regenGroup.isProtected())
                 event.setCancelled(true);
             return;
         }
@@ -251,7 +255,9 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
         }
 
         final long delay = regeneratorSet.getTimeRules().getTime() / (1000 / 20);
-        class TaskHolder { public BukkitTask task; }
+        class TaskHolder {
+            public BukkitTask task;
+        }
         // Bypass java anonymous reference limitation
         final TaskHolder holder = new TaskHolder();
 
@@ -274,7 +280,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     }
 
     private boolean testBypass(Player player) {
-        if(!bypasses.containsKey(player.getUniqueId())) {
+        if (!bypasses.containsKey(player.getUniqueId())) {
             boolean value = player.hasPermission("autoregen.bypass");
             bypasses.put(player.getUniqueId(), value);
             return value;
@@ -290,12 +296,12 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     private RegenGroup getRegenGroup(Location location) {
         ApplicableRegionSet applicableRegions = worldGuard.getRegionManager(location.getWorld()).getApplicableRegions(location);
         String flag = applicableRegions.getFlag(AUTOREGEN);
-        if(flag == null)
+        if (flag == null)
             return null;
 
         RegenGroup regenGroup = regenGroups.get(flag);
 
-        if(regenGroup == null) {
+        if (regenGroup == null) {
             StringBuilder sb = new StringBuilder();
             for (ProtectedRegion applicableRegion : applicableRegions) {
                 sb.append(applicableRegion.getId()).append(" ");
