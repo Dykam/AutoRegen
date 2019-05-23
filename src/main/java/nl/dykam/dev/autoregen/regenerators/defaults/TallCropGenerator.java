@@ -1,19 +1,19 @@
 package nl.dykam.dev.autoregen.regenerators.defaults;
 
 import com.google.common.collect.ImmutableSet;
-import nl.dykam.dev.autoregen.AutoRegenPlugin;
 import nl.dykam.dev.autoregen.RegenContext;
+import nl.dykam.dev.autoregen.actions.DropAction;
+import nl.dykam.dev.autoregen.actions.RemoveAction;
+import nl.dykam.dev.autoregen.actions.RegenerateAction;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashSet;
@@ -48,33 +48,26 @@ public class TallCropGenerator implements Regenerator<BlockState> {
     @Override
     public BlockState breakdown(RegenContext context) {
         Block block = context.getBlock().getBlock();
-        Block below = block.getRelative(BlockFace.DOWN);
-        Block above = block.getRelative(BlockFace.UP);
-        context.getDrops().clear();
-        if ((below == null || below.getType() != block.getType())
-                && ((above == null || above.getType() != block.getType()))
-                && block.getData() != 15) {
-            final Player player = context.getPlayer();
-            String message = ChatColor.GOLD + "This isn't fully grown";
-            AutoRegenPlugin.instance().getToaster().sendMessage(player, message);
-            return null;
-        }
+        context.getActions().clear();
         Material type = block.getType();
         if (breakFully) {
-            // Find bottom most cane
-            while (below != null && below.getType() == type) {
-                block = below;
-                below = block.getRelative(BlockFace.DOWN);
+            while (isOfType(type, block.getRelative(BlockFace.UP))) {
+                block = block.getRelative(BlockFace.UP);
             }
-        }
-        BlockState blockState = block.getState();
-        if (block.getData() != 15) {
-            block.setType(Material.AIR);
+            context.getActions().add(new DropAction(block.getDrops(context.getTool())));
+            context.getActions().add(new RemoveAction(block));
+            block = block.getRelative(BlockFace.DOWN);
+            while (isOfType(type, block.getRelative(BlockFace.DOWN))) {
+                block = block.getRelative(BlockFace.DOWN);
+                context.getActions().add(new DropAction(block.getDrops(context.getTool())));
+                context.getActions().add(new RemoveAction(block));
+            }
         } else {
-            block.breakNaturally(context.getTool());
+            context.getActions().add(new DropAction(block.getDrops(context.getTool())));
+            context.getActions().add(new RemoveAction(block));
         }
-        context.getDrops().clear();
-        return blockState;
+        context.getActions().add(new RegenerateAction());
+        return block.getState();
     }
 
     @Override
@@ -86,23 +79,27 @@ public class TallCropGenerator implements Regenerator<BlockState> {
         Material type = blockState.getType();
         Block below = block.getRelative(BlockFace.DOWN);
         if (regenFully == 0) {
-            if (below == null || below.getType() == Material.SUGAR_CANE_BLOCK || below.getType().isSolid()) {
+            if (isOfType(Material.SUGAR_CANE_BLOCK, below) || below.getType().isSolid()) {
                 block.setType(type);
             }
         } else {
             // Find bottom most cane
-            while (below != null && below.getType() == type) {
+            while (isOfType(type, below)) {
                 block = below;
                 below = block.getRelative(BlockFace.DOWN);
             }
             for (int i = 0; i < regenFully; i++) {
-                if (block == null || block.getType() != Material.AIR) break;
+                if (isOfType(Material.AIR, block)) break;
 
                 block.setType(type);
                 block.setData((byte) 15);
                 block = block.getRelative(BlockFace.UP);
             }
         }
+    }
+
+    private static boolean isOfType(Material type, Block block) {
+        return block != null && block.getType() == type;
     }
 
     public static class Creator implements RegeneratorCreator {

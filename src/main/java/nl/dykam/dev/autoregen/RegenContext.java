@@ -1,6 +1,6 @@
 package nl.dykam.dev.autoregen;
 
-import com.google.common.collect.Lists;
+import nl.dykam.dev.autoregen.actions.Action;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -13,15 +13,14 @@ public class RegenContext {
     private final BlockState block;
     private final ItemStack tool;
     private final Inventory inventory;
-    private Collection<ItemStack> drops;
+    private Collection<Action> actions;
 
-    public RegenContext(Player player, BlockState block, ItemStack tool, Inventory inventory, Collection<ItemStack> drops) {
+    public RegenContext(Player player, BlockState block, ItemStack tool, Inventory inventory, Collection<Action> actions) {
         this.player = player;
         this.block = block;
         this.tool = tool;
         this.inventory = inventory;
-        this.drops = drops;
-        this.drops = Lists.newArrayList(drops);
+        this.actions = actions;
     }
 
     public BlockState getBlock() {
@@ -36,11 +35,11 @@ public class RegenContext {
         return inventory;
     }
 
-    public Collection<ItemStack> getDrops() {
-        return drops;
-    }
-
     public Player getPlayer() {
         return player;
+    }
+
+    public Collection<Action> getActions() {
+        return actions;
     }
 }

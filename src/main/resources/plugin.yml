@@ -2,8 +2,7 @@ name: ${project.name}
 version: ${project.version}
 description: ${project.description}
 main: nl.dykam.dev.autoregen.AutoRegenPlugin
-depend: [WGCustomFlags, WorldGuard]
-softdepend: [ProtocolLib]
+depend: [WorldGuard]
 commands:
   autoregenbypass:
     description: Toggles bypassing autoregen

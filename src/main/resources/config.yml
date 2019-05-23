@@ -1,3 +1,4 @@
+secondary-click-break: true
 groups:
   default:
     # Sets of regeneration settings

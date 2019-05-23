@@ -1,10 +1,12 @@
 package nl.dykam.dev.autoregen;
 
-import com.mewin.WGCustomFlags.WGCustomFlagsPlugin;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StringFlag;
+import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
+import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import nl.dykam.dev.autoregen.actions.*;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.defaults.CocoaRegenerator;
@@ -12,22 +14,26 @@ import nl.dykam.dev.autoregen.regenerators.defaults.CropRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.TallCropGenerator;
 import nl.dykam.dev.autoregen.util.ConfigExtra;
 import nl.dykam.dev.autoregen.util.TitleSettings;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,6 +42,7 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collector;
 
 public class AutoRegenPlugin extends JavaPlugin implements Listener {
     public static final TitleSettings TITLE_SETTINGS = new TitleSettings(20, 5);
@@ -47,9 +54,24 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     private Map<String, RegeneratorCreator> creators;
     private Random random;
     private Map<BukkitTask, Runnable> regenTasks;
+    private boolean secondaryClickBreak;
 
-    public static final StringFlag AUTOREGEN = new StringFlag("autoregen");
+    public static StringFlag AUTOREGEN = new StringFlag("autoregen");
     public static final Pattern TIME_PATTERN = Pattern.compile("(\\d+)(s(?:ec(?:ond)?)?|m(:?in(?:ute)?)?|h(?:our)?|d(?:ay)?)?", Pattern.CASE_INSENSITIVE);
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+
+        worldGuard = WorldGuardPlugin.inst();
+        FlagRegistry flagRegistry = worldGuard.getFlagRegistry();
+        try {
+            flagRegistry.register(AUTOREGEN);
+        } catch (FlagConflictException ex) {
+            this.getServer().getConsoleSender().sendMessage(ChatColor.RED + "Flag for ");
+            this.getPluginLoader().disablePlugin(this);
+        }
+    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -62,16 +84,8 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
         random = new Random();
         regenTasks = new HashMap<>();
 
-        if (Bukkit.getPluginManager().getPlugin("ProtocolLib") == null) {
-            toaster = new ChatToaster();
-        } else {
-            toaster = new ProtocolLibTitleToaster();
-        }
+        toaster = new BukkitToaster();
 
-        WGCustomFlagsPlugin customFlagsPlugin = setupCustomFlags();
-        customFlagsPlugin.addCustomFlag(AUTOREGEN);
-
-        worldGuard = WorldGuardPlugin.inst();
         getConfig().options().copyDefaults(true);
 
         Bukkit.getPluginManager().registerEvents(this, this);
@@ -113,7 +127,9 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
 
     private void parseConfig() {
         regenGroups.clear();
-        ConfigurationSection groupsSection = getConfig().getConfigurationSection("groups");
+        FileConfiguration config = getConfig();
+        secondaryClickBreak = config.getBoolean("secondary-click-break", true);
+        ConfigurationSection groupsSection = config.getConfigurationSection("groups");
         for (String groupName : groupsSection.getKeys(false)) {
             ConfigurationSection groupSection = groupsSection.getConfigurationSection(groupName);
             List<RegeneratorSet> regeneratorSets = new ArrayList<>();
@@ -224,53 +240,84 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
+    private void onRightClick(final PlayerInteractEvent event) {
+        if (!secondaryClickBreak) {
+            return;
+        }
+        if(handleEvent(event.getPlayer(), event.getClickedBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
     private void onBlockBreak(final BlockBreakEvent event) {
-        if (testBypass(event.getPlayer()))
-            return;
+        if(handleEvent(event.getPlayer(), event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
 
-        RegenGroup regenGroup = getRegenGroup(event.getBlock().getLocation());
+    private boolean handleEvent(Player player, Block block) {
+        if (block == null || testBypass(player))
+            return false;
+
+        RegenGroup regenGroup = getRegenGroup(block.getLocation());
         if (regenGroup == null)
-            return;
+            return false;
 
-        Block block = event.getBlock();
-        PlayerInventory inventory = event.getPlayer().getInventory();
-        ItemStack tool = inventory.getItemInHand();
-        Collection<ItemStack> drops = block.getDrops(tool);
-        final RegenContext context = new RegenContext(event.getPlayer(), block.getState(), tool, inventory, drops);
+        PlayerInventory inventory = player.getInventory();
+        ItemStack tool = inventory.getItemInMainHand();
+        final RegenContext context = new RegenContext(
+                player,
+                block.getState(),
+                tool,
+                inventory,
+                new ArrayList<>(Collections.singleton(new DefaultEventAction()))
+        );
 
         final RegeneratorSet regeneratorSet = regenGroup.getRegenerator(context);
         if (regeneratorSet == null) {
-            if (regenGroup.isProtected())
-                event.setCancelled(true);
-            return;
+            return regenGroup.isProtected();
         }
-        event.setCancelled(true);
 
         final Regenerator regenerator = regeneratorSet.getRegenerator();
 
         final Object breakdownData = regenerator.breakdown(context);
 
-        for (ItemStack itemStack : context.getDrops()) {
-            block.getWorld().dropItemNaturally(block.getLocation(), itemStack);
-        }
+        boolean cancel = true;
 
-        final long delay = regeneratorSet.getTimeRules().getTime() / (1000 / 20);
-        class TaskHolder {
-            public BukkitTask task;
-        }
-        // Bypass java anonymous reference limitation
-        final TaskHolder holder = new TaskHolder();
+        for (Action action : context.getActions()) {
+            if (action instanceof DefaultEventAction) {
+                cancel = false;
+            } else if (action instanceof RemoveAction) {
+                RemoveAction breakAction = (RemoveAction) action;
+                breakAction.getBlock().setType(Material.AIR);
+            } else if (action instanceof DropAction) {
+                for (ItemStack itemStack : ((DropAction)action).getDrops()) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), itemStack);
+                }
+            } else if (action instanceof RegenerateAction) {
+                final long delay = regeneratorSet.getTimeRules().getTime() / (1000 / 20);
+                class TaskHolder {
+                    BukkitTask task;
+                }
+                // Bypass java anonymous reference limitation
+                final TaskHolder holder = new TaskHolder();
 
-        TimerTask runnable = new TimerTask() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public void run() {
-                regenerator.regenerate(context, breakdownData);
-                regenTasks.remove(holder.task);
+                TimerTask runnable = new TimerTask() {
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void run() {
+                        regenerator.regenerate(context, breakdownData);
+                        regenTasks.remove(holder.task);
+                    }
+                };
+                holder.task = Bukkit.getScheduler().runTaskLater(this, runnable, delay);
+                regenTasks.put(holder.task, runnable);
             }
-        };
-        holder.task = Bukkit.getScheduler().runTaskLater(this, runnable, delay);
-        regenTasks.put(holder.task, runnable);
+        }
+
+
+        return cancel;
     }
 
 
@@ -286,11 +333,6 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
             return value;
         }
         return bypasses.get(player.getUniqueId());
-    }
-
-    WGCustomFlagsPlugin setupCustomFlags() {
-        Plugin plugin = getServer().getPluginManager().getPlugin("WGCustomFlags");
-        return plugin instanceof WGCustomFlagsPlugin ? (WGCustomFlagsPlugin) plugin : null;
     }
 
     private RegenGroup getRegenGroup(Location location) {

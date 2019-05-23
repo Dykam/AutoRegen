@@ -3,9 +3,13 @@ package nl.dykam.dev.autoregen.regenerators.defaults;
 import com.google.common.collect.ImmutableSet;
 import nl.dykam.dev.autoregen.AutoRegenPlugin;
 import nl.dykam.dev.autoregen.RegenContext;
+import nl.dykam.dev.autoregen.actions.DropAction;
+import nl.dykam.dev.autoregen.actions.RegenerateAction;
+import nl.dykam.dev.autoregen.actions.RemoveAction;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
+import org.apache.commons.collections4.CollectionUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,6 +18,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.CocoaPlant;
 import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,17 +43,17 @@ public class CocoaRegenerator implements Regenerator<CocoaPlant> {
 
     @Override
     public CocoaPlant breakdown(RegenContext context) {
+        context.getActions().clear();
         CocoaPlant plant = (CocoaPlant) context.getBlock().getData();
         if (plant.getSize() != CocoaPlant.CocoaPlantSize.LARGE) {
             Player player = context.getPlayer();
             String message = ChatColor.GOLD + "This isn't fully grown";
             AutoRegenPlugin.instance().getToaster().sendMessage(player, message);
-            context.getDrops().clear();
             return null;
         }
-        context.getDrops().clear();
-        context.getDrops().add(new ItemStack(Material.INK_SACK, 3, (short) 3));
-        context.getBlock().getBlock().setType(Material.AIR);
+        context.getActions().add(new DropAction(new ArrayList<>(Collections.singleton(new ItemStack(Material.INK_SACK, 3, (short) 3)))));
+        context.getActions().add(new RemoveAction(context.getBlock().getBlock()));
+        context.getActions().add(new RegenerateAction());
         return plant;
     }
 
