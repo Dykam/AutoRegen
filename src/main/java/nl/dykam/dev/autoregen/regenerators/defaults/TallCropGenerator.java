@@ -9,6 +9,7 @@ import nl.dykam.dev.autoregen.actions.RegenerateAction;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -50,11 +51,11 @@ public class TallCropGenerator implements Regenerator<BlockState> {
 
     @Override
     public BlockState breakdown(RegenContext context) {
-        Block block = context.getBlock().getBlock();
         context.getActions().clear();
-        Material type = block.getType();
+        Material type = context.getBlock().getType();
+        Block block = context.getBlock().getBlock();
 
-        if (isRoot(block) && !Utilities.isOfType(type, block.getRelative(BlockFace.UP))) {
+        if (isRoot(context.getBlock()) && !Utilities.isOfType(type, block.getRelative(BlockFace.UP))) {
             Player player = context.getPlayer();
             String message = ChatColor.GOLD + "This hasn't grown enough";
             AutoRegenPlugin.instance().getToaster().sendMessage(player, message);
@@ -86,21 +87,17 @@ public class TallCropGenerator implements Regenerator<BlockState> {
         if (blockState == null)
             return;
 
-        Block block = blockState.getBlock();
         Material type = blockState.getType();
-        if (!isRoot(block)) {
+        if (!isRoot(blockState)) {
             return;
         }
-        Block below = block.getRelative(BlockFace.DOWN);
         if (regenFully == 0) {
-            if (Utilities.isOfType(Material.SUGAR_CANE_BLOCK, below) || below.getType().isSolid()) {
-                block.setType(type);
-            }
+            blockState.getBlock().setType(type);
         } else {
+            Block block = blockState.getBlock();
             // Find bottom most cane
-            while (Utilities.isOfType(type, below)) {
-                block = below;
-                below = block.getRelative(BlockFace.DOWN);
+            while (Utilities.isOfType(type, block.getRelative(BlockFace.DOWN))) {
+                block = block.getRelative(BlockFace.DOWN);
             }
             for (int i = 0; i < regenFully; i++) {
                 if (Utilities.isOfType(Material.AIR, block)) break;
@@ -112,8 +109,8 @@ public class TallCropGenerator implements Regenerator<BlockState> {
         }
     }
 
-    public static boolean isRoot(Block block) {
-        Block below = block.getRelative(BlockFace.DOWN);
+    public static boolean isRoot(BlockState block) {
+        Block below = block.getBlock().getRelative(BlockFace.DOWN);
         return !Utilities.isOfType(Material.AIR, below) && !Utilities.isOfType(block.getType(), below);
     }
 
