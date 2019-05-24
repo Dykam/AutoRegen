@@ -73,7 +73,7 @@ public class TreeRegenerator implements Regenerator<Sapling> {
     public void regenerate(RegenContext context, Sapling sapling) {
         BlockState block = context.getBlock();
         Block blockDown = block.getBlock().getRelative(BlockFace.DOWN);
-        if (sapling == null || block.getBlock().getType() != Material.AIR || blockDown == null || !blockDown.getType().isSolid()) {
+        if (sapling == null || block.getBlock().getType() != Material.AIR || (!Utilities.isOfType(Material.DIRT, blockDown) && !Utilities.isOfType(Material.GRASS, blockDown))) {
             return;
         }
 

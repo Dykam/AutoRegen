@@ -54,7 +54,7 @@ public class TallCropGenerator implements Regenerator<BlockState> {
         context.getActions().clear();
         Material type = block.getType();
 
-        if (!Utilities.isOfType(block.getType(), block.getRelative(BlockFace.DOWN)) || !Utilities.isOfType(block.getType(), block.getRelative(BlockFace.UP))) {
+        if (isRoot(block) && !Utilities.isOfType(type, block.getRelative(BlockFace.UP))) {
             Player player = context.getPlayer();
             String message = ChatColor.GOLD + "This hasn't grown enough";
             AutoRegenPlugin.instance().getToaster().sendMessage(player, message);
@@ -88,6 +88,9 @@ public class TallCropGenerator implements Regenerator<BlockState> {
 
         Block block = blockState.getBlock();
         Material type = blockState.getType();
+        if (!isRoot(block)) {
+            return;
+        }
         Block below = block.getRelative(BlockFace.DOWN);
         if (regenFully == 0) {
             if (Utilities.isOfType(Material.SUGAR_CANE_BLOCK, below) || below.getType().isSolid()) {
@@ -107,6 +110,11 @@ public class TallCropGenerator implements Regenerator<BlockState> {
                 block = block.getRelative(BlockFace.UP);
             }
         }
+    }
+
+    public static boolean isRoot(Block block) {
+        Block below = block.getRelative(BlockFace.DOWN);
+        return !Utilities.isOfType(Material.AIR, below) && !Utilities.isOfType(block.getType(), below);
     }
 
     public static class Creator implements RegeneratorCreator {
