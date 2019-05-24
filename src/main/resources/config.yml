@@ -1,4 +1,4 @@
-secondary-click-break: true
+secondary-click-break: false
 groups:
   default:
     # Sets of regeneration settings
@@ -6,12 +6,13 @@ groups:
     sets:
       - crops: true
         cocoa: true
+        tree: true
         tallcrops:
           break-fully: false
           regen-fully: false
         timing:
-            type: delay # interval|delay|instant
-            time: 5s
+          type: instant # interval|delay|instant
+          time: 1s
     settings:
       # Prevent any other block than autoregenerated blocks from being mined.
       # If set to false, use something like allow-blocks to make sure only regenables can be broken

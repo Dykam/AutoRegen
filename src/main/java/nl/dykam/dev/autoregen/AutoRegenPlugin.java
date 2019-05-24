@@ -12,6 +12,7 @@ import nl.dykam.dev.autoregen.regenerators.RegeneratorCreator;
 import nl.dykam.dev.autoregen.regenerators.defaults.CocoaRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.CropRegenerator;
 import nl.dykam.dev.autoregen.regenerators.defaults.TallCropGenerator;
+import nl.dykam.dev.autoregen.regenerators.defaults.TreeRegenerator;
 import nl.dykam.dev.autoregen.util.ConfigExtra;
 import nl.dykam.dev.autoregen.util.TitleSettings;
 import org.apache.commons.collections4.CollectionUtils;
@@ -93,6 +94,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
         Bukkit.getServicesManager().register(RegeneratorCreator.class, new CropRegenerator.Creator(this), this, ServicePriority.Normal);
         Bukkit.getServicesManager().register(RegeneratorCreator.class, new TallCropGenerator.Creator(this), this, ServicePriority.Normal);
         Bukkit.getServicesManager().register(RegeneratorCreator.class, new CocoaRegenerator.Creator(this), this, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(RegeneratorCreator.class, new TreeRegenerator.Creator(this), this, ServicePriority.Normal);
 
         for (RegisteredServiceProvider<RegeneratorCreator> provider : Bukkit.getServicesManager().getRegistrations(RegeneratorCreator.class)) {
             RegeneratorCreator creator = provider.getProvider();
@@ -128,7 +130,7 @@ public class AutoRegenPlugin extends JavaPlugin implements Listener {
     private void parseConfig() {
         regenGroups.clear();
         FileConfiguration config = getConfig();
-        secondaryClickBreak = config.getBoolean("secondary-click-break", true);
+        secondaryClickBreak = config.getBoolean("secondary-click-break", false);
         ConfigurationSection groupsSection = config.getConfigurationSection("groups");
         for (String groupName : groupsSection.getKeys(false)) {
             ConfigurationSection groupSection = groupsSection.getConfigurationSection(groupName);

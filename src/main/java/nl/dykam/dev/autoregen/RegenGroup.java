@@ -6,6 +6,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import nl.dykam.dev.autoregen.regenerators.Regenerator;
 import nl.dykam.dev.autoregen.regenerators.Trigger;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.material.MaterialData;
 
